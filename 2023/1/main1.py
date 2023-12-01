@@ -1,6 +1,3 @@
-import os
-import sys
-
 digits = set(str(x) for x in range(10))
 
 def solve(input_str: str):
