@@ -35,7 +35,12 @@ def solve(input_str):
 
   for n in list(all_nums):
     for s in all_sizes:
+      all_nums.add(n+s+1)
       all_nums.add(n+s)
+      all_nums.add(n+s-1)
+      all_nums.add(max(0, n-s+1))
+      all_nums.add(max(0, n-s))
+      all_nums.add(max(0, n-s-1))
   all_nums = sorted(list(all_nums))
 
   grid = np.full((len(sections), len(all_nums)), 0, dtype=int)
@@ -49,13 +54,15 @@ def solve(input_str):
           layer[i] = shift
           break
 
+  print(f'{len(all_nums)} nums total')
+
   for location_index, location_num in enumerate(all_nums):
-    print(f'location {location_num}')
+    print(f'location {location_index}/{len(all_nums)} ({float(location_index)*100.0/len(all_nums):.2}%)')
     cur_index = location_index
     for layer in grid:
-      print(f"cur_index={cur_index} num={all_nums[cur_index]} shift={layer[cur_index]}")
+      # print(f"cur_index={cur_index} num={all_nums[cur_index]} shift={layer[cur_index]}")
       cur_index = num_to_index(all_nums, all_nums[cur_index] - layer[cur_index])
-    print(f"cur_index={cur_index} num={all_nums[cur_index]}")
+    # print(f"cur_index={cur_index} num={all_nums[cur_index]}")
     if has_seed(seed_nums, all_nums[cur_index]):
       return location_num
 
