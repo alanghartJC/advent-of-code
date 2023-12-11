@@ -1,4 +1,4 @@
-def solve(input_str):
+def solve(input_str: str):
   pass
 
 def main():
