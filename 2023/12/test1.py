@@ -1,7 +1,7 @@
 import pytest
 import textwrap
 
-from main1 import solve
+from main2 import solve
 
 def test_sample1():
   sample_input = textwrap.dedent("""
