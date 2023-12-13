@@ -1,7 +1,7 @@
 import pytest
 import textwrap
 
-from main2 import solve, solve_questionmark_section
+from main2 import solve, solve_questionmark_section, get_pattern_runs
 
 def test_sample1():
   sample_input = textwrap.dedent("""
@@ -66,3 +66,31 @@ def test_component_2():
 
 def test_component_3():
   assert solve_questionmark_section(q_count=11, sizes=[2,3]) == 1
+
+def test_get_pattern_runs_1():
+  sample_input = textwrap.dedent("""
+
+    """).strip()
+
+  assert get_pattern_runs(sample_input) == []
+
+def test_get_pattern_runs_2():
+  sample_input = textwrap.dedent("""
+    #
+    """).strip()
+
+  assert get_pattern_runs(sample_input) == [('#', 1), ('#', 0)]
+
+def test_get_pattern_runs_3():
+  sample_input = textwrap.dedent("""
+    #????#
+    """).strip()
+
+  assert get_pattern_runs(sample_input) == [('#', 1), ('?', 4), ('#', 1)]
+
+def test_get_pattern_runs_4():
+  sample_input = textwrap.dedent("""
+    ###??##??##??###
+    """).strip()
+
+  assert get_pattern_runs(sample_input) == [('#', 3), ('?', 2), ('#', 2), ('?', 2), ('#', 2), ('?', 2), ('#', 3)]

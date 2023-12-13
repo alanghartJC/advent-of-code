@@ -24,8 +24,12 @@ def solve_questionmark_section(q_count: int, sizes: List[int]) -> int:
   # ?????????? 1,1,1
   # Now it is simply 2 parameters: number of ?'s and number of sizes
   import pdb; pdb.set_trace()
-  q_count -= sum([x-1 for x in sizes])
   size_count = len(sizes)
+  if size_count == 2:
+
+    return 1
+
+  q_count -= sum([x-1 for x in sizes])
   # buckets are segments where dots can go
   buckets = size_count - 1
   # these are *moveable* dots. does not include one dot per bucket that cannot move
@@ -133,8 +137,41 @@ def count_matches(memo: Dict[Tuple[str, Tuple[int]], int], pattern: str, sizes: 
       output += count_matches(memo, next_pattern, sizes, cur_group_type=cur_group_type, cur_group_len=cur_group_len, running_pattern=running_pattern)
       return output
 
+def get_pattern_runs(pattern_group: str) -> List[Tuple[str, int]]:
+  # a "run" is a contiguous segment of the pattern that is all ? or all # (all the same)
+  if not pattern_group:
+    return []
+  runs = []
+  cur_type = '#'
+  cur_type_count = 0
+  for c in pattern_group:
+    # print(runs)
+    if c == cur_type:
+      cur_type_count += 1
+    else:
+      runs.append((cur_type, cur_type_count))
+      cur_type_count = 1
+      cur_type = c
+
+  runs.append((cur_type, cur_type_count))
+  if runs[-1][0] == '?' or len(runs) == 1:
+    runs.append(('#', 0))
+  # print(runs)
+  return runs
+
+
+def solve_pattern_group(memo: dict, pattern_group: str, sizes: List[int]) -> int:
+  """pattern_group has no '.' values, only '#' and '?' """
+  # a "run" is a contiguous segment of the pattern that is all ? or all # (all the same)
+  runs = get_pattern_runs(pattern_group)
+  for a_idx, a in enumerate(runs[:-1]):
+    for b_idx, b in enumerate(runs[1:]):
+      solve_questionmark_section()
+
 
 def solve_pattern_groups(group_memo, memo, pattern_groups, sizes):
+  """Each pattern group is separated by '.' the sizes can be distributed among them
+  atomically."""
   memo_key = (tuple(pattern_groups), tuple(sizes))
   if memo_key in group_memo:
     print(f"Found group memo: {group_memo[memo_key]}")
