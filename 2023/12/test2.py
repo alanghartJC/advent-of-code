@@ -1,7 +1,7 @@
 import pytest
 import textwrap
 
-from main2 import solve
+from main2 import solve, solve_questionmark_section
 
 def test_sample1():
   sample_input = textwrap.dedent("""
@@ -56,3 +56,13 @@ def test_mult1_3():
     """).strip()
 
   assert solve(sample_input) == 3
+
+def test_component_1():
+  assert solve_questionmark_section(q_count=7, sizes=[1,1,2]) == 2
+
+def test_component_2():
+  assert solve_questionmark_section(q_count=11, sizes=[1,2,3]) == 4
+  assert solve_questionmark_section(q_count=11, sizes=[3,2,1]) == 4
+
+def test_component_3():
+  assert solve_questionmark_section(q_count=11, sizes=[2,3]) == 1

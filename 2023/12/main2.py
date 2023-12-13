@@ -1,4 +1,5 @@
 from typing import List, Dict, Tuple
+import math
 import re
 
 def prefix_len(pattern: str) -> int:
@@ -10,6 +11,31 @@ def prefix_len(pattern: str) -> int:
     else:
       break
   return output
+
+def solve_questionmark_section(q_count: int, sizes: List[int]) -> int:
+  """Returns number of ways the given sizes can be distributed in the section
+  of question marks. ALL sizes must be accounted for.
+
+  This assumes that the first and last ? will be #."""
+  # Example input:  ????????????? 1,2,3
+  # The only thing that varies is the spacing *between* each segment of #'s.
+  # To simplify, each segment of #'s can be shrunk to a single #
+  # (here, remove 3 ?'s)
+  # ?????????? 1,1,1
+  # Now it is simply 2 parameters: number of ?'s and number of sizes
+  import pdb; pdb.set_trace()
+  q_count -= sum([x-1 for x in sizes])
+  size_count = len(sizes)
+  # buckets are segments where dots can go
+  buckets = size_count - 1
+  # these are *moveable* dots. does not include one dot per bucket that cannot move
+  # (otherwise the two adjacent # segments would be combined into one)
+  dots = q_count - (2*size_count - 1)
+  # It is a combinatorial problem: how many different ways can the moveable dots be distributed
+  # among the buckets?
+  combos = math.factorial(dots + buckets - 1) // (math.factorial(dots) * math.factorial(buckets - 1))
+  return combos
+
 
 def count_matches(memo: Dict[Tuple[str, Tuple[int]], int], pattern: str, sizes: List[int], cur_group_type: str = None, cur_group_len: int = 0, space_required: bool = False, running_pattern: str = "") -> int:
   """Recursively search for matching arrangements and return how many"""
