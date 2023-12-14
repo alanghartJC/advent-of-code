@@ -84,7 +84,13 @@ def solve(input_str: str):
     pattern, sizes_str = line.split()
     sizes = [int(x) for x in sizes_str.split(",")]
     count = count_matches(pattern, sizes)
-    print(f"{i}:\tcount={count}\t{pattern}\t{sizes}")
+    print(f"""def test_sample_{i}():
+  sample_input = textwrap.dedent("{line}").strip()
+
+  assert solve(sample_input, 1) == {count}
+
+  """)
+    # print(f"{i}:\tcount={count}\t{pattern}\t{sizes}")
     output += count
   return output
 
