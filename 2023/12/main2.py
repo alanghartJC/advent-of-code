@@ -12,7 +12,7 @@ def prefix_len(pattern: str) -> int:
       break
   return output
 
-def solve_questionmark_section(q_count: int, sizes: List[int]) -> int:
+def solve_questionmark_group(q_count: int, sizes: List[int]) -> int:
   """Returns number of ways the given sizes can be distributed in the section
   of question marks. ALL sizes must be accounted for.
 
@@ -23,147 +23,74 @@ def solve_questionmark_section(q_count: int, sizes: List[int]) -> int:
   # (here, remove 3 ?'s)
   # ?????????? 1,1,1
   # Now it is simply 2 parameters: number of ?'s and number of sizes
-  import pdb; pdb.set_trace()
+  if q_count == len("???????????????"):
+    import pdb; pdb.set_trace()
   size_count = len(sizes)
 
   q_count -= sum([x-1 for x in sizes])
+
+  if size_count == 1:
+      return q_count
+
   # buckets are segments where dots can go
   buckets = size_count - 1
+
   # these are *moveable* dots. does not include one dot per bucket that cannot move
   # (otherwise the two adjacent # segments would be combined into one)
   dots = q_count - (2*size_count - 1)
+
+  if dots < buckets:
+    return 0
   # It is a combinatorial problem: how many different ways can the moveable dots be distributed
   # among the buckets?
+  if (dots + buckets - 1) < 0:
+    import pdb; pdb.set_trace()
+  if (buckets - 1) < 0:
+    import pdb; pdb.set_trace()
   combos = math.factorial(dots + buckets - 1) // (math.factorial(dots) * math.factorial(buckets - 1))
   return combos
 
 
-def count_matches(memo: Dict[Tuple[str, Tuple[int]], int], pattern: str, sizes: List[int], cur_group_type: str = None, cur_group_len: int = 0, space_required: bool = False, running_pattern: str = "") -> int:
-  """Recursively search for matching arrangements and return how many"""
-  # print(f"pattern={running_pattern}-{pattern}\tsizes={sizes}\tcur_group_type={cur_group_type}\tcur_group_len={cur_group_len}\tspace_required={space_required}")
-  # import pdb; pdb.set_trace()
-  memo_key = (pattern, cur_group_type, cur_group_len, tuple(sizes))
-  memo_res = memo.get(memo_key)
-  if memo_res:
-    # print(f"Found memo for {memo_key}: {memo_res}")
-    return memo_res
-
-  if not pattern:
-    if not sizes:
-      # Match found
-      # print(f"*****************Match found ({running_pattern})")
-      res = 1
-      memo[memo_key] = res
-      return res
-    # Invalid arrangement
-    # print("Invalid")
-    res = 0
-    memo[memo_key] = res
-    return res
-
-  if not sizes:
-    if "#" not in pattern:
-      res = 1
-      memo[memo_key] = res
-      return res
-
-  # pref_len = prefix_len(pattern)
-  pref_type = pattern[0]
-
-  if pref_type == ".":
-    if cur_group_type == "#":
-        res = 0
-        memo[memo_key] = res
-        return res
-    pref_len = prefix_len(pattern)
-    if sizes:
-      pref_len = min(prefix_len(pattern), sizes[0])
-    res = count_matches(memo, pattern[pref_len:], sizes, cur_group_type=pref_type, cur_group_len=cur_group_len+1, running_pattern=running_pattern+pattern[:pref_len])
-    memo[memo_key] = res
-    return res
-
-  elif pref_type == "#":
-    if not sizes:
-      # print(f"Invalid (# found with no remaining size)")
-      res = 0
-      memo[memo_key] = res
-      return res
-    if space_required:
-      # Invalid arrangement; ### groups not separated by .
-      # print("Invalid (space required)")
-      res = 0
-      memo[memo_key] = res
-      return res
-    pref_len = prefix_len(pattern)
-    # import pdb; pdb.set_trace()
-    if cur_group_type != pref_type:
-      # Starting new group
-      cur_group_len = 0
-
-    if pref_len + cur_group_len > sizes[0]:
-      # Invalid arrangement; # group size exceeds expected size (without a ? or . to separate from next group)
-      # import pdb; pdb.set_trace()
-      # print("Invalid ()")
-      res = 0
-      memo[memo_key] = res
-      return res
-    elif pref_len + cur_group_len == sizes[0]:
-      # Group found/matched, remove its size from the sizes list and move on to next group
-      res = count_matches(memo, pattern[pref_len:], sizes[1:], space_required=True, running_pattern=running_pattern+pattern[:pref_len])
-      memo[memo_key] = res
-      return res
-    else:
-      # Starting new group
-      res = count_matches(memo, pattern[pref_len:], sizes, cur_group_type=pref_type, cur_group_len=pref_len + cur_group_len, running_pattern=running_pattern+pattern[:pref_len])
-      memo[memo_key] = res
-      return res
-  elif pref_type == "?":
-    next_pattern = pattern[:]
-    if space_required:
-      next_pattern = "." + pattern[1:]
-      res = count_matches(memo, next_pattern, sizes, cur_group_type=".", cur_group_len=1, running_pattern=running_pattern)
-      memo[memo_key] = res
-      return res
-    else:
-      output = 0
-      next_pattern = "." + pattern[1:]
-      # print(f"trying . ({next_pattern})")
-      output += count_matches(memo, next_pattern, sizes, cur_group_type=cur_group_type, cur_group_len=cur_group_len, running_pattern=running_pattern)
-      next_pattern = "#" + pattern[1:]
-      # print(f"trying # ({next_pattern})")
-      output += count_matches(memo, next_pattern, sizes, cur_group_type=cur_group_type, cur_group_len=cur_group_len, running_pattern=running_pattern)
-      return output
-
-def memoize(memo, key, val):
+def memoize(memo, key, val, prefix):
+  # print(f"prefix={prefix} key={key} val={val}")
   memo[key] = val
   return val
 
-def count_matches2(memo: Dict[Tuple[int, Tuple[int]], int], pattern: str, sizes: List[int]) -> int:
+def count_matches(memo: Dict[Tuple[int, Tuple[int]], int], pattern: str, sizes: List[int], depth: int, prefix: str) -> int:
   """Recursively search for matching arrangements and return how many"""
   # print(f"pattern={running_pattern}-{pattern}\tsizes={sizes}\tcur_group_type={cur_group_type}\tcur_group_len={cur_group_len}\tspace_required={space_required}")
   # import pdb; pdb.set_trace()
   memo_key = (pattern, tuple(sizes))
   memo_res = memo.get(memo_key)
-  # if memo_key == ("???", (1,1)):
+  # if memo_key == ("????????#?", (3,1,1)):
   #   import pdb; pdb.set_trace()
   if memo_res:
     # print(f"Found memo for {memo_key}: {memo_res}")
     return memo_res
 
+  # print(" "*depth, end="")
   if not sizes:
-    return memoize(memo, memo_key, 1)
+    # print(f"\t\t\t\tsolution: {prefix}")
+    if "#" in pattern:
+      return memoize(memo, memo_key, 0, prefix)
+    return memoize(memo, memo_key, 1, prefix)
 
   if not pattern:
     # Out of space. Invalid arrangement
-    return memoize(memo, memo_key, 0)
+    return memoize(memo, memo_key, 0, prefix)
+
+  # if "#" not in pattern:
+  #   res = solve_questionmark_group(len(pattern), sizes)
+  #   return memoize(memo, memo_key, res, prefix)
 
   # Start with 1, assuming
   output = 0
   cur_size = sizes[0]
+  # import pdb; pdb.set_trace()
   for i in range(len(pattern)):
     if len(pattern) < cur_size:
       # Out of space. Invalid arrangement
-      return memoize(memo, memo_key, 0)
+      return memoize(memo, memo_key, 0, prefix)
     if i > 0 and pattern[i-1] == "#":
       # Anything beyond this would be invalid because the previous character (a #) would
       # either cause the current size to be +1 (if adjacent) or it would mean there
@@ -177,12 +104,13 @@ def count_matches2(memo: Dict[Tuple[int, Tuple[int]], int], pattern: str, sizes:
       continue
 
     if i+cur_size < len(pattern):
-      output += count_matches2(memo, pattern[i+cur_size+1:], sizes[1:])
+      output += count_matches(memo, pattern[i+cur_size+1:], sizes[1:], depth+1, prefix + ("."*i + "#"*cur_size)+".")
     elif i+cur_size == len(pattern) and len(sizes) == 1:
       # End of pattern. Arrangement found
+      # print(f"\t\t\t\t\t\t\tsolution: {prefix}")
       output += 1
 
-  return memoize(memo, memo_key, output)
+  return memoize(memo, memo_key, output, prefix)
 
 
 def get_pattern_runs(pattern_group: str) -> List[Tuple[str, int]]:
@@ -217,62 +145,69 @@ def solve_pattern_group(memo: dict, pattern_group: str, sizes: List[int]) -> int
       solve_questionmark_section()
 
 
-def solve_pattern_groups(group_memo, memo, pattern_groups, sizes):
+def solve_pattern_groups(group_memo, memo, pattern_groups, sizes, depth: int):
   """Each pattern group is separated by '.' the sizes can be distributed among them
   atomically."""
   memo_key = (tuple(pattern_groups), tuple(sizes))
   if memo_key in group_memo:
-    print(f"Found group memo: {group_memo[memo_key]}")
+    # print(f"{' '*depth}Found group memo: {group_memo[memo_key]}")
     return group_memo[memo_key]
 
   if not pattern_groups or not sizes:
     if not sizes and all(["#" not in g for g in pattern_groups]):
-      # print(f"pattern_groups={pattern_groups}, sizes={sizes} RETURN 1")
+      # print(f"{' '*depth}pattern_groups={pattern_groups}, sizes={sizes} RETURN 1")
       group_memo[memo_key] = 1
       return 1
-    # print(f"pattern_groups={pattern_groups}, sizes={sizes} RETURN 0")
+    # print(f"{' '*depth}pattern_groups={pattern_groups}, sizes={sizes} RETURN 0")
     group_memo[memo_key] = 0
     return 0
+
   if len(pattern_groups[0]) < sizes[0] and "#" not in pattern_groups[0]:
-    output = solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes)
-    # print(f"pattern_groups={pattern_groups}, sizes={sizes} RETURN {output}")
+    output = solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes, depth+1)
+    # print(f"{' '*depth}pattern_groups={pattern_groups}, sizes={sizes} RETURN {output}")
     group_memo[memo_key] = output
     return output
 
-
   output = 0
   for i in range(len(sizes)):
-    if len(pattern_groups[0]) < sum(sizes[:i+1]):
-      break
+    # if len(pattern_groups[0]) < sum(sizes[:i+1]):
+      # import pdb; pdb.set_trace()
+      # break
 
     # import pdb; pdb.set_trace()
-    print(f"Counting {pattern_groups[0]} {sizes[:i+1]}")
+    if sum(sizes[:i+1]) > (len(pattern_groups[0]) - (len(sizes[:i+1])-1)):
+      # print(f"**** breaking early because pattern too short {pattern_groups[0]} {sizes[:i+1]}")
+      break
+    # if depth == 1:
+      # print("")
+    # print(f"{' '*depth}Counting {pattern_groups[0]} {sizes[:i+1]}")
     if all(c == "?" for c in pattern_groups[0]):
-      # print(f"Short circuiting for ?-only group")
+      # print(f"{' '*depth}Short circuiting for ?-only group")
       # group_count = solve_questionmark_section(len(pattern_groups[0]), sizes[:i+1])
-      group_count = count_matches2(memo, pattern_groups[0], sizes[:i+1])
+      group_count = count_matches(memo, pattern_groups[0], sizes[:i+1], 0, "")
     else:
-      group_count = count_matches2(memo, pattern_groups[0], sizes[:i+1])
+      group_count = count_matches(memo, pattern_groups[0], sizes[:i+1], 0, "")
     # group_count = count_matches(memo, pattern_groups[0], sizes[:i+1])
-    remaining_count = solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes[i+1:])
-    # print(f"i={i} group_count={group_count} remaining_count={remaining_count}")
+    remaining_count = solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes[i+1:], depth+1)
+    # print(f"{' '*depth}i={i} group_count={group_count} remaining_count={remaining_count} (adding to output:{group_count * remaining_count})")
     output += (group_count * remaining_count)
 
   if "#" not in pattern_groups[0]:
     # import pdb; pdb.set_trace()
-    output += solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes)
+    output += solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes, depth+1)
 
-  # print(f"pattern_groups={pattern_groups}, sizes={sizes} RETURN output={output}")
+  # print(f"{' '*depth}pattern_groups={pattern_groups}, sizes={sizes} RETURN output={output}")
   group_memo[memo_key] = output
+  # print(f"{' '*(depth-1)}Returning group result {output}")
   return output
 
 def solve(input_str: str, multiplier: int):
-  print("")
+  # print("")
 
   output = 0
   total_lines = len(input_str.splitlines())
   for lineno, line in enumerate(input_str.splitlines()):
-    # print(f"Line {lineno}/{total_lines} ({100.0*lineno/total_lines:2f}): {line}")
+    print(f"Line {lineno}/{total_lines} ({100.0*lineno/total_lines:2f}%): {line}")
     orig_pattern, sizes_str = line.split()
     # Simplify by merging any contiguous series of .'s into a single .
     # e.g. ##.....## becomes ##.##
@@ -283,8 +218,8 @@ def solve(input_str: str, multiplier: int):
     group_memo = dict()
     memo = dict()
     # import pdb; pdb.set_trace()
-    print(f"{lineno}:\t{orig_pattern}\t{sizes}")
-    count = solve_pattern_groups(group_memo, memo, pattern_groups, sizes)
+    # print(f"{lineno}:\t{orig_pattern}\t{sizes}")
+    count = solve_pattern_groups(group_memo, memo, pattern_groups, sizes, 0)
     print(f"count={count}")
     output += count
   return output
@@ -293,8 +228,8 @@ def solve(input_str: str, multiplier: int):
 def main():
   with open("./input.txt", "r") as f:
     input_str = f.read()
-  result = solve(input_str, 1)
-  print(result)
+  result = solve(input_str, 5)
+  # print(result)
 
 if __name__ == "__main__":
   main()
