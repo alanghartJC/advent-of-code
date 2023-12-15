@@ -6001,6 +6001,3 @@ def test_sample_999():
   sample_input = textwrap.dedent("?#???#?.#???? 6,1,1").strip()
 
   assert solve(sample_input, 1) == 6
-
-
-8270

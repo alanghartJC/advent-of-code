@@ -23,14 +23,15 @@ def solve_questionmark_group(q_count: int, sizes: List[int]) -> int:
   # (here, remove 3 ?'s)
   # ?????????? 1,1,1
   # Now it is simply 2 parameters: number of ?'s and number of sizes
-  if q_count == len("???????????????"):
-    import pdb; pdb.set_trace()
+  # if q_count == len("???????????????"):
   size_count = len(sizes)
 
   q_count -= sum([x-1 for x in sizes])
 
   if size_count == 1:
-      return q_count
+    if q_count <= 0:
+      return 0
+    return q_count
 
   # buckets are segments where dots can go
   buckets = size_count - 1
@@ -39,7 +40,9 @@ def solve_questionmark_group(q_count: int, sizes: List[int]) -> int:
   # (otherwise the two adjacent # segments would be combined into one)
   dots = q_count - (2*size_count - 1)
 
-  if dots < buckets:
+  if dots == 0:
+    return 1
+  if dots < 0:
     return 0
   # It is a combinatorial problem: how many different ways can the moveable dots be distributed
   # among the buckets?
@@ -47,7 +50,15 @@ def solve_questionmark_group(q_count: int, sizes: List[int]) -> int:
     import pdb; pdb.set_trace()
   if (buckets - 1) < 0:
     import pdb; pdb.set_trace()
-  combos = math.factorial(dots + buckets - 1) // (math.factorial(dots) * math.factorial(buckets - 1))
+  combos = 0
+  # Bookends are "#"
+  combos += math.factorial(dots + buckets - 1) // (math.factorial(dots) * math.factorial(buckets - 1))
+  if (dots >= 2):
+    # Bookends are "."
+    combos += math.factorial((dots-2) + (buckets+2) - 1) // (math.factorial(dots-2) * math.factorial((buckets+2) - 1))
+  if (dots >= 1):
+    # Bookends are "#" and "."
+    combos += 2*math.factorial((dots-1) + (buckets+1) - 1) // (math.factorial(dots-1) * math.factorial((buckets+1) - 1))
   return combos
 
 
@@ -79,9 +90,9 @@ def count_matches(memo: Dict[Tuple[int, Tuple[int]], int], pattern: str, sizes: 
     # Out of space. Invalid arrangement
     return memoize(memo, memo_key, 0, prefix)
 
-  # if "#" not in pattern:
-  #   res = solve_questionmark_group(len(pattern), sizes)
-  #   return memoize(memo, memo_key, res, prefix)
+  if "#" not in pattern:
+    res = solve_questionmark_group(len(pattern), sizes)
+    return memoize(memo, memo_key, res, prefix)
 
   # Start with 1, assuming
   output = 0
@@ -168,8 +179,10 @@ def solve_pattern_groups(group_memo, memo, pattern_groups, sizes, depth: int):
     group_memo[memo_key] = output
     return output
 
+  found_matches = False
   output = 0
-  for i in range(len(sizes)):
+  for i in reversed(list(range(len(sizes)))):
+  # for i in range(len(sizes)):
     # if len(pattern_groups[0]) < sum(sizes[:i+1]):
       # import pdb; pdb.set_trace()
       # break
@@ -177,7 +190,7 @@ def solve_pattern_groups(group_memo, memo, pattern_groups, sizes, depth: int):
     # import pdb; pdb.set_trace()
     if sum(sizes[:i+1]) > (len(pattern_groups[0]) - (len(sizes[:i+1])-1)):
       # print(f"**** breaking early because pattern too short {pattern_groups[0]} {sizes[:i+1]}")
-      break
+      continue
     # if depth == 1:
       # print("")
     # print(f"{' '*depth}Counting {pattern_groups[0]} {sizes[:i+1]}")
@@ -191,6 +204,12 @@ def solve_pattern_groups(group_memo, memo, pattern_groups, sizes, depth: int):
     remaining_count = solve_pattern_groups(group_memo, memo, pattern_groups[1:], sizes[i+1:], depth+1)
     # print(f"{' '*depth}i={i} group_count={group_count} remaining_count={remaining_count} (adding to output:{group_count * remaining_count})")
     output += (group_count * remaining_count)
+
+    if group_count or remaining_count:
+      found_matches = True
+    else:
+      if found_matches:
+        break
 
   if "#" not in pattern_groups[0]:
     # import pdb; pdb.set_trace()

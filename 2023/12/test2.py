@@ -1,7 +1,7 @@
 import pytest
 import textwrap
 
-from main2 import solve, solve_questionmark_section, get_pattern_runs
+from main2 import solve, get_pattern_runs
 
 def test_sample1():
   sample_input = textwrap.dedent("""
