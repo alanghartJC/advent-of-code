@@ -94,10 +94,25 @@ def count_matches(memo: Dict[Tuple[int, Tuple[int]], int], pattern: str, sizes: 
     res = solve_questionmark_group(len(pattern), sizes)
     return memoize(memo, memo_key, res, prefix)
 
+  # import pdb; pdb.set_trace()
+
+  a = 0
+  b = len(pattern)-1
+  # import pdb; pdb.set_trace()
+  while a < b:
+    if pattern[a] == "#" or pattern[b] == "#":
+      if pattern[a] != pattern[b] and pattern[b] == "#":
+          # print(f"Reversing pattern {pattern} {sizes}")
+          # import pdb; pdb.set_trace()
+          pattern = "".join(reversed(pattern))
+          sizes = list(reversed(sizes))
+      break
+    a += 1
+    b -= 1
   # Start with 1, assuming
   output = 0
   cur_size = sizes[0]
-  # import pdb; pdb.set_trace()
+
   for i in range(len(pattern)):
     if len(pattern) < cur_size:
       # Out of space. Invalid arrangement
@@ -241,14 +256,14 @@ def solve(input_str: str, multiplier: int):
     count = solve_pattern_groups(group_memo, memo, pattern_groups, sizes, 0)
     print(f"count={count}")
     output += count
-  return output
 
+  return output
 
 def main():
   with open("./input.txt", "r") as f:
     input_str = f.read()
   result = solve(input_str, 5)
-  # print(result)
+  print(result)
 
 if __name__ == "__main__":
   main()
