@@ -1,5 +1,5 @@
 def solve(input_str: str):
-  pass
+  print("")
 
 def main():
   with open("./input.txt", "r") as f:
